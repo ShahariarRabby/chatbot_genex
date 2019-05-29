@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify,session, render_template,redirect, url_for
 from authy.api import AuthyApiClient
 from datetime import timedelta, datetime
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import exc
 import requests
 import json
 import ast
@@ -118,4 +116,4 @@ def temp():
                 return "you are not verified. Please Enter your 11 digit phone number to verify."
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run()
