@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/myCSS.css') }}">
+    <title>Genex Digital</title>
+</head>
+<body link="white">
+<div style="padding-top:150px; padding-left:60%; padding-right:2%">
+
+<div class="chat_window">
+
+	<div class="top_menu">
+		<div class="buttons">
+			<div class="button close"></div>
+			<div class="button minimize"></div>
+			<div class="button maximize"></div>
+		</div>
+		<div class="title">Genex Chatbot</div>
+	</div>
+
+	<ul class="messages"></ul>
+
+	<div class="bottom_wrapper clearfix">
+		<div class="message_input_wrapper">
+			<input class="message_input" placeholder="Type your message here..." onfocus="this.placeholder = ''" />
+		</div>
+		<div class="send_message">
+			<div class="icon"></div>
+			<div class="text">Send</div>
+		</div>
+	</div>
+
+</div>
+
+<div class="message_template">
+	<li class="message">
+		 <!-- <div class="avatar"></div> -->
+		<div class="text_wrapper">
+			<div class="text"></div>
+		</div>
+	</li>
+</div>
+</div>
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+var append_message = function(text,side) {
+		var regex = /(https?:\/\/([-\w\.]+)+(:\d+)?(\/([-\w\/_\.]*(\?\S+)?)?)?)/ig
+        // Replace plain text links by hyperlinks
+        var replaced_text = text.replace(regex, "<a href='$1' target='_blank'>$1</a>");
+
+    	$message = $($('.message_template').clone().html());
+        $message.addClass(side).find('.text').html(replaced_text);
+        $('.messages').append($message);
+        $message.addClass('appeared');
+        var objDiv =  $('.messages')
+			// objDiv.scrollTop = objDiv.scrollHeight;
+		objDiv.animate({ scrollTop: objDiv.prop("scrollHeight") - objDiv.height() }, 30);
+
+    }
+
+ var send = function(){
+        var input=$(".message_input").val();
+        $('.message_input').val('');
+        append_message(input,'right');
+            $.ajax({
+                url: "{{ url_for('temp') }}",
+                type: "POST",
+                data:{mes:input},
+                    success: function(data) {
+                        append_message(data,'left');
+                    },
+                    error: function() {
+                        console.log("Error", arguments);
+                    }
+            });
+    }
+$(document).ready(function(){
+    $(".send_message").click(function(){
+      if ($(".message_input").val().trim()!=""){
+        send()
+      }
+    });
+});
+
+window.onload = function() {
+  append_message("Hello! I am your personal assistant. How can I help you?",'left');
+};
+
+$(document).keypress(function(e) {
+    if(e.which == 13) {
+      if ($(".message_input").val().trim()!=""){
+        send()
+      }
+    }
+});
+
+</script>
+
+</html>
