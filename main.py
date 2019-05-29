@@ -57,8 +57,9 @@ def get_bot_response(message):
         return "!!SLAP!!"
 
 @app.route("/",methods=["GET","POST"])
-def indx():
-    return render_template("index.html")
+def index():
+    if request.method=="GET":
+        return render_template("index.html")
 
 @app.route('/temp', methods=['POST'])
 def temp():
@@ -117,4 +118,4 @@ def temp():
                 return "you are not verified. Please Enter your 11 digit phone number to verify."
 
 if __name__=="__main__":
-    app.run(debug =True)
+    app.run(debug=True)
