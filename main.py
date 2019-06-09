@@ -98,6 +98,8 @@ def temp():
     else:
         int,output = get_bot_response(message)
         if int not in intents.keys():
+            if int == "General_Ending" or int == "Goodbye":
+                session.clear()
             return output
         else:
             if "verify" in session:
@@ -116,4 +118,4 @@ def temp():
                 return "you are not verified. Please Enter your 11 digit phone number to verify."
 
 if __name__=="__main__":
-    app.run()
+    app.run(debug=True)
