@@ -13,14 +13,14 @@ app.config.from_object('config')
 api = AuthyApiClient(app.config['AUTHY_API_KEY'])
 password = "uVVBM9ut54gZaWQYbs6nRZekii4S2vdPrQIAmZKgPqK0"
 
-FB_URL = "https://graph.facebook.com/v3.3/me/messages?access_token="
-CRM_API = "http://genex-crm.herokuapp.com/crm/v1/get"
+# FB_URL = "https://graph.facebook.com/v3.3/me/messages?access_token="
+CRM_API = "http://genexcrm.eu-gb.mybluemix.net/crm/v1/get"
 app.secret_key = "keepitsecret"
 
 @app.before_request
 def before_request():
     session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=2)
+    app.permanent_session_lifetime = timedelta(minutes=5)
 
 def send_code(phone_number):
 
@@ -40,39 +40,99 @@ def get_bot_response(message):
     params = {'version':'2019-02-28'}
     data = {"input":{"text":""}}
     data["input"]["text"] = message
+    if "prevContext" in session.keys():
+        data["context"]= session["prevContext"]
     data = json.dumps(data)
+    # print("payload data: "+data)
     response = requests.post(query_string,params=params,headers=headers,data = data,auth=("apikey",password))
     if response.status_code == 200:
         s = response.json()
+        prevContext = s["context"]
+        session["prevContext"] = prevContext
         try:
-            print(s["intents"][0]["intent"])
+            # print(s)
             intent = s["intents"][0]["intent"]
-            text = s["output"]["text"][0]
-            return intent,text
+            print(s["output"]["text"])
+            return intent,s["output"]["text"],s
         except:
-            return None,"Sorry! I didn't Undestand."
+            # print(s)
+            return "Empty",s["output"]["text"],s
     else:
-        return "!!SLAP!!"
+        return "",'["!!SLAP!!"]',""
+
+def check_session():
+    if "phone_number" in session.keys():
+        return True
+    else:
+        return False
+
+def perform_action(output,response):
+
+    if response["actions"][0]["name"] == "triggerOTPAuthentication":
+        session["requireOTP"] = True
+        return json.dumps(output)
+    elif response["actions"][0]["name"] == "callertune_status":
+        if "isAuthenticated" in response["context"]:
+            if response["context"]["isAuthenticated"]:
+
+                payload = {"phone":session["phone_number"]}
+                row = requests.post(CRM_API,data=json.dumps(payload))
+                crm_output = ast.literal_eval(row.content.decode('utf-8'))
+
+                if crm_output["call_tune_service_status"] == "1":
+
+                    session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
+
+                    _,out,_ = get_bot_response("hi")
+                    return json.dumps(out)
+                else:
+
+                    session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+                    _,out,_ = get_bot_response("hi")
+                    return json.dumps(out)
+            else:
+                session["prevContext"] = {"isAuthenticated":False}
+                session["requireOTP"] = True
+                _,output,_ = get_bot_response("hi")
+                return json.dumps(output)
+
+    elif response["actions"][0]["name"] == "missedcall_status":
+        if "isAuthenticated" in response["context"]:
+            if response["context"]["isAuthenticated"]:
+                payload = {"phone":session["phone_number"]}
+                row = requests.post(CRM_API,data=json.dumps(payload))
+                crm_output = ast.literal_eval(row.content.decode('utf-8'))
+
+                if crm_output["missed_call_status"] == "1":
+
+                    session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
+
+                    _,out,_ = get_bot_response("hi")
+                    return json.dumps(out)
+                else:
+
+                    session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+                    _,out,_ = get_bot_response("hi")
+                    return json.dumps(out)
 
 @app.route("/",methods=["GET","POST"])
 def index():
     if request.method=="GET":
+        session.clear()
+        _,_,_= get_bot_response("")
         return render_template("index.html")
 
 @app.route('/temp', methods=['POST'])
 def temp():
     message = request.form['mes']
-    # START
 
-    # intents = ['callertuneserviceinfo', 'CallerTuneStatus', 'CallerTuneUpdate', 'discountOffer',
-    # 'InternetPackageStatus', 'InternetPackageUpdate', 'MissedCallStatus', 'MissedCallUpdate']
-    intents = {'callertuneserviceinfo':"call_tune_service_status", 'CallerTuneStatus':"call_tune_service_status", 'CallerTuneUpdate':"call_tune_service_status", 'discountOffer':"discount_offer",
-    'InternetPackageStatus':"internet_package_status", 'InternetPackageUpdate':"internet_package_status", 'MissedCallStatus':"missed_call_status", 'MissedCallUpdate':"missed_call_status"}
     ph = re.search("\d{11}",message)
     tok = re.search("\d{4}",message)
-
-    if ph and len(message)==11:
-        print(type(ph.string))
+    OTP = False
+    if "requireOTP" in session.keys(): # we can use conext variable 'isAuthenticated'
+        OTP = True                     # instead of this procedure
+    if ph and len(message)==11 and OTP:
+        session.pop("requireOTP")
         ph = ph.string
         crm_output = requests.post(CRM_API,data = json.dumps({"phone":ph}))
         crm_output = ast.literal_eval(crm_output.content.decode('utf-8'))
@@ -80,42 +140,61 @@ def temp():
         if crm_output["found"] == "true":
             session["phone_number"] = ph
             if send_code(ph):
-                return "A 4-digit token has sent to your registered number. Please enter the token as it is."
+                return '["A 4-digit token has sent to your registered number. Please enter the token as it is."]'
             else:
-                return "Unable to send OTP."
+                return '["Unable to send OTP."]'
         else:
-            return "I could not find your number in our system. please enter the valid phone number."
+            return '["I could not find your number in our system. please enter the valid phone number."]'
 
     elif tok and len(message)==4:
         tok = tok.string
         if "phone_number" in session:
             if verify(session["phone_number"],tok):
                 session["verify"] = True
-                return "Thank you for verifying your identity."
-            else:
-                return "your OTP is not correct"
-
-    else:
-        int,output = get_bot_response(message)
-        if int not in intents.keys():
-            if int == "General_Ending" or int == "Goodbye":
-                session.clear()
-            return output
-        else:
-            if "verify" in session:
-
-                # END
-                print(session)
-                payload = {"phone":session["phone_number"]}
-                row = requests.post(CRM_API,data=json.dumps(payload))
-                crm_output = ast.literal_eval(row.content.decode('utf-8'))
-                response = crm_output[intents[int]]
-                if row.status_code == 200:
-                    return str(response)
+                # print(session)
+                if "prevContext" in session.keys():
+                    session["prevContext"]["isAuthenticated"] = True
+                    _,output,r = get_bot_response("hi")
+                    if "actions" in r.keys():
+                        return perform_action(output,r)
+                    else:
+                        return json.dumps(output)
                 else:
-                    return "Something bad happened! :("
+                    session["prevContext"] = {"isAuthenticated":True}
+                    _,output,r = get_bot_response("hi")
+                    if "actions" in r.keys():
+                        return perform_action(output,r)
+                    else:
+                        return json.dumps(output)
+
             else:
-                return "you are not verified. Please Enter your 11 digit phone number to verify."
+                # print(session)
+                if "prevContext" in session.keys():
+                    session["prevContext"]["isAuthenticated"] = False
+                    _,output,_ = get_bot_response("hi")
+                return json.dumps(output)
+                # return "your OTP is not correct"
+        else:
+            if "prevContext" in session.keys():
+                session["prevContext"]["isAuthenticated"] = False
+                _,output,_ = get_bot_response("hi")
+            return json.dumps(output)
+
+    else: # for any message other than 4-digit OTP code and phone number number
+
+        if not check_session():
+            session["prevContext"] = {"isAuthenticated":False}
+            session["requireOTP"] = True
+
+        int,output,response = get_bot_response(message)
+
+        print(response)
+        if "actions" in response.keys():
+            print(int)
+            print(response)
+            return perform_action(output,response)
+        else:
+            return json.dumps(output)
 
 if __name__=="__main__":
     app.run(debug=True)

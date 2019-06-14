@@ -69,7 +69,7 @@ var append_message = function(text,side) {
                 type: "POST",
                 data:{mes:input},
                     success: function(data) {
-                        append_message(data,'left');
+                      JSON.parse(data).map((e) => append_message(e,'left'));
                     },
                     error: function() {
                         console.log("Error", arguments);
