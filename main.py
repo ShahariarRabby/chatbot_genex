@@ -14,8 +14,10 @@ api = AuthyApiClient(app.config['AUTHY_API_KEY'])
 password = "uVVBM9ut54gZaWQYbs6nRZekii4S2vdPrQIAmZKgPqK0"
 
 # FB_URL = "https://graph.facebook.com/v3.3/me/messages?access_token="
-CRM_API = "http://genexcrm.eu-gb.mybluemix.net/crm/v1/get"
+CRM_API = "https://updatedcrm.herokuapp.com/api.php?appKey=JY6WdJpkDsSgn8eC4GsS"
 app.secret_key = "keepitsecret"
+
+# sudo lsof -t -i :5000 | xargs kill -9
 
 @app.before_request
 def before_request():
@@ -45,6 +47,7 @@ def get_bot_response(message):
     data = json.dumps(data)
     # print("payload data: "+data)
     response = requests.post(query_string,params=params,headers=headers,data = data,auth=("apikey",password))
+    # print(response.json())
     if response.status_code == 200:
         s = response.json()
         prevContext = s["context"]
@@ -52,7 +55,7 @@ def get_bot_response(message):
         try:
             # print(s)
             intent = s["intents"][0]["intent"]
-            print(s["output"]["text"])
+            # print(s["output"]["text"])/
             return intent,s["output"]["text"],s
         except:
             # print(s)
@@ -67,43 +70,42 @@ def check_session():
         return False
 
 def perform_action(output,response):
+    # print(" I am in perform_action")
 
     if response["actions"][0]["name"] == "triggerOTPAuthentication":
         session["requireOTP"] = True
+        # print(" I am in triggerOTPAuthentication")
         return json.dumps(output)
     elif response["actions"][0]["name"] == "callertune_status":
+
         if "isAuthenticated" in response["context"]:
             if response["context"]["isAuthenticated"]:
 
-                payload = {"phone":session["phone_number"]}
-                row = requests.post(CRM_API,data=json.dumps(payload))
-                crm_output = ast.literal_eval(row.content.decode('utf-8'))
+                crm_api = CRM_API + "&query=user_info&phoneNo=" + session["phone_number"]
+                crm_output = requests.get(crm_api)
+                crm_output = crm_output.json()
 
-                if crm_output["call_tune_service_status"] == "1":
+                if crm_output["callerTune"] != "deactivated":
 
                     session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
 
                     _,out,_ = get_bot_response("hi")
+                    out.append("And you are using "+crm_output["callerTune"]["name"])
                     return json.dumps(out)
                 else:
 
                     session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
                     _,out,_ = get_bot_response("hi")
                     return json.dumps(out)
-            else:
-                session["prevContext"] = {"isAuthenticated":False}
-                session["requireOTP"] = True
-                _,output,_ = get_bot_response("hi")
-                return json.dumps(output)
 
     elif response["actions"][0]["name"] == "missedcall_status":
         if "isAuthenticated" in response["context"]:
             if response["context"]["isAuthenticated"]:
-                payload = {"phone":session["phone_number"]}
-                row = requests.post(CRM_API,data=json.dumps(payload))
-                crm_output = ast.literal_eval(row.content.decode('utf-8'))
+                crm_api = CRM_API + "&query=user_info&phoneNo=" + session["phone_number"]
+                crm_output = requests.get(crm_api)
+                crm_output = crm_output.json()
 
-                if crm_output["missed_call_status"] == "1":
+                if crm_output["missedCallAlert"] == "activated":
 
                     session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
 
@@ -114,6 +116,112 @@ def perform_action(output,response):
                     session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
                     _,out,_ = get_bot_response("hi")
                     return json.dumps(out)
+    elif response["actions"][0]["name"] == "internet_status":
+
+        crm_api = CRM_API + "&query=user_info&phoneNo=" + session["phone_number"]
+        crm_output = requests.get(crm_api)
+        crm_output = crm_output.json()
+        if crm_output["internetStatus"] != "deactivated":
+            row = crm_output["internetStatus"]
+            out = []
+            ls = "You are using "
+            ls = ls + "<b>" + row["id"] + " - " + row["packageName"] + "</b> package. <br>" + "And your current balance is " + row["balance"] + ".<br>" + "Valid till " + row["validity"]+"."
+            out.append(ls)
+            ls = ""
+            return json.dumps(out)
+        else:
+            return json.dumps(["Currently you have no active internet package."])
+
+    elif response["actions"][0]["name"] == "callertune_list":
+
+        crm_api = CRM_API + "&query=caller_tune_list"
+        crm_output = requests.get(crm_api)
+        crm_output = crm_output.json()
+        if len(crm_output)>=1:
+
+            out = ["Here are the Caller tunes that are available right now:- <br>"]
+            ls = "Code | Name<br>"
+            for row in crm_output:
+                ls = ls + row["id"] + " | " + row["name"] + "<br>"
+            out.append(ls)
+            return json.dumps(out)
+        else:
+            return json.dumps(["No Caller Tune is availble right now."])
+
+    elif response["actions"][0]["name"] == "internet_list":
+
+        crm_api = CRM_API + "&query=internet_package_list"
+        crm_output = requests.get(crm_api)
+        crm_output = crm_output.json()
+        if len(crm_output)>=1:
+            out = ["Here are the Internet Packages that are available right now:- <br>"]
+            ls = ""
+            for row in crm_output:
+                ls = ls + "Code: " + row["id"] + "<br>" + "Name: " + row["packageName"] + "<br>" + "Quota: " + row["quota"] + "<br>" + "Validity: " + row["validity"] + " days<br>" +"Price: " + row["price"] + " Taka<br>"
+                out.append(ls)
+                ls = ""
+            return json.dumps(out)
+        else:
+            return json.dumps(["No Internet Package is availble right now."])
+
+    elif response["actions"][0]["name"] == "missedcall_activate_service":
+
+        crm_api = CRM_API + "&query=update_missed_called_alert" + "&status=1" + "&phoneNo=" + session["phone_number"]
+        crm_output = requests.post(crm_api)
+        crm_output = crm_output.json()
+        print("Activating")
+        if crm_output["message"] == "Updated Successfully":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+        elif crm_output["message"] == "No Changed":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Active"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+
+    elif response["actions"][0]["name"] == "missedcall_deactivate_service":
+
+        crm_api = CRM_API + "&query=update_missed_called_alert" + "&status=0" + "&phoneNo=" + session["phone_number"]
+        crm_output = requests.post(crm_api)
+        crm_output = crm_output.json()
+        if crm_output["message"] == "Updated Successfully":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+        elif crm_output["message"] == "No Changed":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+
+    elif response["actions"][0]["name"] == "callertune_deactivate_service":
+
+        crm_api = CRM_API + "&query=update_caller_tune" + "&callerTuneId=0" + "&phoneNo=" + session["phone_number"]
+        crm_output = requests.post(crm_api)
+        crm_output = crm_output.json()
+        if crm_output["message"] == "Updated Successfully":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+        elif crm_output["message"] == "No Changed":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+
+    elif response["actions"][0]["name"] == "internet_deactivate_service":
+
+        crm_api = CRM_API + "&query=update_internet_package_status" + "&status=0" + "&phoneNo=" + session["phone_number"]
+        crm_output = requests.post(crm_api)
+        crm_output = crm_output.json()
+        if crm_output["message"] == "Updated Successfully":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+        elif crm_output["message"] == "No Changed":
+            session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
+            _,out,_ = get_bot_response("hi")
+            return json.dumps(out)
+
+
 
 @app.route("/",methods=["GET","POST"])
 def index():
@@ -134,10 +242,12 @@ def temp():
     if ph and len(message)==11 and OTP:
         session.pop("requireOTP")
         ph = ph.string
-        crm_output = requests.post(CRM_API,data = json.dumps({"phone":ph}))
-        crm_output = ast.literal_eval(crm_output.content.decode('utf-8'))
+        crm_api = CRM_API + "&query=user_info&phoneNo=" + ph
+        print(crm_api)
+        crm_output = requests.get(crm_api)
+        crm_output = crm_output.json()
 
-        if crm_output["found"] == "true":
+        if crm_output["phoneNo"] != None:
             session["phone_number"] = ph
             if send_code(ph):
                 return '["A 4-digit token has sent to your registered number. Please enter the token as it is."]'
@@ -184,14 +294,14 @@ def temp():
 
         if not check_session():
             session["prevContext"] = {"isAuthenticated":False}
-            session["requireOTP"] = True
+            # session["requireOTP"] = True
 
         int,output,response = get_bot_response(message)
 
         print(response)
         if "actions" in response.keys():
-            print(int)
-            print(response)
+            print(response["actions"])
+            # print("hi")
             return perform_action(output,response)
         else:
             return json.dumps(output)
