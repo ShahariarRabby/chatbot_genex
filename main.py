@@ -220,7 +220,22 @@ def perform_action(output,response):
             session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
+    elif response["actions"][0]["name"] == "rechargeHistory":
 
+        crm_api = CRM_API + "&query=recharge_history" + "&phoneNo=" + session["phone_number"]
+        crm_output = requests.post(crm_api)
+        crm_output = crm_output.json()
+        if len(crm_output) != 0:
+            out = ["Here is your last recharge history:<br>"]
+            lst = ""
+            for row in crm_output:
+                lst = lst + "Transaction ID: " + row["transactionID"] + "<br>Recharge Amount: " + row["amount"] + "<br>Date: " + row["rechargeDate"].split(" ")[0]
+                out.append(lst)
+                lst = ""
+            return json.dumps(out)
+        else:
+            out = ["You have no recharge history"]
+            return json.dumps(out)
 
 
 @app.route("/",methods=["GET","POST"])
