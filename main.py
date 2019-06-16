@@ -318,6 +318,10 @@ def temp():
             print(response["actions"])
             # print("hi")
             return perform_action(output,response)
+        elif int=="General_Ending":
+            session.clear()
+            output = ["Thank you! It was my pleasure to serve you"]
+            return json.dumps(output)
         else:
             return json.dumps(output)
 
