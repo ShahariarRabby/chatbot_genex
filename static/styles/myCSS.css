@@ -2,10 +2,23 @@
 /*  box-sizing: border-box;*/
 /*}*/
 
+.miniBot{
+  padding-top:100px; 
+  padding-left:65%; 
+  padding-right:2%
+}
+
+.logo{
+  width: 100px; 
+  margin-right: 15px;
+  float: right;
+}
+
 body {
   background-color: #edeff2;
-  font-family: "Calibri", "Roboto", sans-serif;
+  font-family: "Times new roman", "Roboto", sans-serif;
   margin:0;
+  height: 95vh;
 }
 a {
   color:white;
@@ -15,8 +28,8 @@ a {
   /*width: calc(100% - 20px);*/
   /*max-width: 800px;*/
   /*height: 500px;*/
-  width:100%;
-  height:100%;
+  width:90%;
+  height:900%;
   border-radius: 10px;
   background-color: #fff;
   /*left: 50%;*/
@@ -25,11 +38,13 @@ a {
   /*box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);*/
   background-color: #f8f8f8;
   overflow: hidden;
+  padding-bottom: 10px;
 }
 
 .top_menu {
   background-color: #fff;
-  width: 100%;
+  /* width: 90%; */
+  height: 25px;
   padding: 20px 0 15px;
   box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
 }
@@ -56,7 +71,7 @@ a {
 }
 .top_menu .title {
   text-align: center;
-  color: #bcbdc0;
+  color: #800080;
   font-size: 20px;
 }
 
@@ -76,38 +91,57 @@ a {
   opacity: 0;
 }
 .messages .message.left .avatar {
-  /*background-color: #f5886e;*/
-background-color:cornflowerblue; 
-  float: left;
+  /* background-color: #c0897c; */
+/* background-color:purple; 
+/* background-image: url('../img/favicon.png'); */
+background: url('../img/avatar2.png');
+float: left;
+background-size: contain;
+}
+.messages .message.left .avatar img {
+width: 50px;
+height: 50px;
+border-radius: 50%;
+
 }
 .messages .message.left .text_wrapper {
   /*background-color: #ffe6cb;*/
-background-color:#25aae1; 
+background-color:#800080; 
   margin-left: 20px;
 }
 .messages .message.left .text_wrapper::after, .messages .message.left .text_wrapper::before {
   right: 100%;
   /*border-right-color: #ffe6cb;*/
-  border-right-color: #25aae1;
+  border-right-color: #800080;
 }
 .messages .message.left .text {
   /*color: #c48843;*/
   color:white;
 }
 .messages .message.right .avatar {
-  background-color: #fdbf68;
+  /* background-color: #00DADA; */
+  background: url('../img/avatar.png');
+  background-size: contain;
   float: right;
+}
+
+.messages .message.right .avatar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+
 }
 .messages .message.right .text_wrapper {
   /*background-color: #c7eafc;*/
-  background-color: gray;
+  background-color: #00DADA;
+
   margin-right: 20px;
   float: right;
 }
 .messages .message.right .text_wrapper::after, .messages .message.right .text_wrapper::before {
   left: 100%;
   /*border-left-color: #c7eafc;*/
-  border-left-color:gray;
+  border-left-color:#00DADA;
 }
 .messages .message.right .text {
   /*color: #45829b;*/
@@ -124,9 +158,9 @@ background-color:#25aae1;
 }
 .messages .message .text_wrapper {
   display: inline-block;
-  padding: 20px;
+  padding: 8px;
   border-radius: 6px;
-  width:60%;
+  width: 50%;
   min-width: 100px;
   position: relative;
 }
@@ -142,13 +176,14 @@ background-color:#25aae1;
 .messages .message .text_wrapper::after {
   border-width: 13px;
   margin-top: 0px;
+  top:4px;
 }
-.messages .message .text_wrapper::before {
+/* .messages .message .text_wrapper::before {
   border-width: 15px;
   margin-top: -2px;
-}
+} */
 .messages .message .text_wrapper .text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 300;
   word-wrap: break-word;
 }
@@ -178,13 +213,13 @@ background-color:#25aae1;
   color: gray;
 }
 .bottom_wrapper .send_message {
-  width: 140px;
+  width: 100px;
   height: 50px;
   display: inline-block;
   border-radius: 50px;
   /*background-color: #a3d063;*/
-  background-color:rgba(255, 140, 0, 1);
-  border: 2px solid rgba(255, 140, 0, 1);
+  background-color:#800080;
+  border: 2px solid rgba(222, 222, 222, 222);
   color: #fff;
   cursor: pointer;
   transition: all 0.2s linear;
@@ -193,10 +228,10 @@ background-color:#25aae1;
 }
 .bottom_wrapper .send_message:hover {
   color: #a3d063;
-  background-color: #fff;
+  background-color: #00A8A8;;
 }
 .bottom_wrapper .send_message .text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 300;
   display: inline-block;
   line-height: 48px;
