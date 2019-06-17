@@ -13,6 +13,20 @@
   margin-right: 15px;
   float: right;
 }
+.name{
+  padding-left: 15px;
+  font-weight: bold;
+  color: purple;
+  font-size: 20px;
+}
+
+.chat_name {
+  width: 34px;
+  margin-left: 15px;
+  margin-top: -8px;
+  float: left;
+  border-radius: 50%;
+}
 
 body {
   background-color: #edeff2;
