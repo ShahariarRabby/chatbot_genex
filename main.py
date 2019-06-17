@@ -3,7 +3,6 @@ from authy.api import AuthyApiClient
 from datetime import timedelta, datetime
 import pymysql
 import random
-import MySQLdb
 import requests
 import json
 import ast

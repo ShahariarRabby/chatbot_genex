@@ -3,3 +3,4 @@ authy==2.2.3
 gunicorn== 19.9.0
 requests==2.21.0
 twilio==6.27.0
+PyMySQL==0.9.3
