@@ -16,7 +16,7 @@
 
 body {
   background-color: #edeff2;
-  font-family: "Times new roman", "Roboto", sans-serif;
+  font-family: calibri, sans-serif;
   margin:0;
   height: 95vh;
 }
@@ -96,8 +96,10 @@ a {
 /* background-image: url('../img/favicon.png'); */
 
 /* background: url("{{ url_for('static', filename='img/avatar.png')  }}" ); */
-background: url('https://i.ibb.co/fG51JcL/avatar2.png');
+background: url('https://i.ibb.co/cLKHQws/sarah.png');
 float: left;
+width: 36px;
+background-repeat: no-repeat;
 background-size: contain;
 }
 .messages .message.left .avatar img {
@@ -122,14 +124,16 @@ background-color:#800080;
 }
 .messages .message.right .avatar {
   /* background-color: #00DADA; */
-  background: url('https://i.ibb.co/R0KfYzz/avatar.png');
+  background: url('https://i.ibb.co/vcKtMVN/avater-user.png');
   background-size: contain;
+  width: 36px;
+    background-repeat: no-repeat;
   float: right;
 }
 
 .messages .message.right .avatar img {
-  width: 50px;
-  height: 50px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
 
 }
