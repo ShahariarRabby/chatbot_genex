@@ -1,3 +1,5 @@
-AUTHY_API_KEY = "uyKWK3oEx2cbmEJPnBIuGsdcApHVZxiI"
+AUTHY_API_KEY = "tNYPzIe3QFJlGyw7SBE6eQd78k6MNJvs"
 WO_ID = "99e1260f-de8c-4336-98ef-cd2b25e13928"
 password = "uVVBM9ut54gZaWQYbs6nRZekii4S2vdPrQIAmZKgPqK0"
+DB_PASS = "RFNGLDHQEMQWDWTS"
+DB_HOST = "sl-eu-gb-p05.dblayer.com"

@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify,session, render_template,redirect, url_for
 from authy.api import AuthyApiClient
 from datetime import timedelta, datetime
+import pymysql
+import random
+import MySQLdb
 import requests
 import json
 import ast
@@ -35,6 +38,18 @@ def verify(phone_number,token):
 
     return s.ok()
 
+def db_connect():
+    db = pymysql.connect(host=app.config["DB_HOST"],port=18785,db="CRM",user="admin",passwd=app.config["DB_PASS"])
+    cur = db.cursor()
+    return db,cur
+def insert(db,cur,data):
+    query_string = "INSERT INTO querybank (ticket, phoneNo, name, query, date) VALUES ('{}','{}','{}','{}','{}')".format(data["ticket"],data["phoneNo"],data["name"],data["query"],data["date"])
+    print(query_string)
+    try:
+        cur.execute(query_string)
+        return True
+    except:
+        return False
 def get_bot_response(message):
 
     query_string = "https://gateway.watsonplatform.net/assistant/api/v1/workspaces/"+app.config['WO_ID']+"/message"
@@ -88,9 +103,8 @@ def perform_action(output,response):
                 if crm_output["callerTune"] != "deactivated":
 
                     session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
-
                     _,out,_ = get_bot_response("hi")
-                    out.append("And you are using "+crm_output["callerTune"]["name"])
+                    out = [out[0]+" And you are using <b>"+crm_output["callerTune"]["name"]+"</b>."]
                     return json.dumps(out)
                 else:
 
@@ -125,7 +139,7 @@ def perform_action(output,response):
             row = crm_output["internetStatus"]
             out = []
             ls = "You are using "
-            ls = ls + "<b>" + row["id"] + " - " + row["packageName"] + "</b> package. <br>" + "And your current balance is " + row["balance"] + ".<br>" + "Valid till " + row["validity"]+"."
+            ls = ls + "<b>" + row["id"] + " - " + row["packageName"] + "</b> package. <br>" + "And your current internet balance is " + row["balance"] + ".<br>" + "Valid till " + row["validity"]+"."
             out.append(ls)
             ls = ""
             return json.dumps(out)
@@ -264,6 +278,7 @@ def temp():
 
         if crm_output["phoneNo"] != None:
             session["phone_number"] = ph
+            session["name"] = crm_output["name"]
             if send_code(ph):
                 return '["A 4-digit token has sent to your registered number. Please enter the token as it is."]'
             else:
@@ -313,16 +328,37 @@ def temp():
 
         int,output,response = get_bot_response(message)
 
-        print(response)
+        print(int)
         if "actions" in response.keys():
-            print(response["actions"])
+            # print(response["actions"])
             # print("hi")
             return perform_action(output,response)
         elif int=="General_Ending":
             session.clear()
-            output = ["Thank you! It was my pleasure to serve you"]
+            output = ["Thank you! It was my pleasure to serve you."]
             return json.dumps(output)
         else:
+            # send the message and phone number to some portal bia API call
+            # if "phone_number" in session:
+            #
+            #     data = {"ticket":"","phoneNo":"","name":"","query":"","date":""}
+            #     data["ticket"] = "T"+str(random.randint(1000,9999))
+            #     data["phoneNo"] = session["phone_number"]
+            #     data["name"] = session["name"]
+            #     data["query"] = message
+            #     data["date"] = str(datetime.today()).split(" ")[0]
+            #     db,cur = db_connect()
+            #     if insert(db,cur,data):
+            #         print("OK")
+            #     else:
+            #         print("Not OK")
+            #     db.close()
+            #     out = ["Sorry, currently I'm unable to assist you with this query. Should I transfer to an Human Agent for further assistance?"]
+            #     return json.dumps(out)
+            # else:
+            #     out = ["Sorry, currently I'm unable to assist you with this query. Should I transfer to an Human Agent for further assistance?"]
+            #     return json.dumps(out)
+        # else:
             return json.dumps(output)
 
 if __name__=="__main__":
