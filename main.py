@@ -261,6 +261,10 @@ def perform_action(output,response):
             out = ["You have no recharge history"]
             return json.dumps(out)
 
+    elif response["actions"][0]["name"] == "agent_transfer":
+        # _,out,_ = get_bot_response("hi")
+        return json.dumps(output)
+
 
 @app.route("/",methods=["GET","POST"])
 def index():
@@ -289,6 +293,7 @@ def temp():
         if crm_output["phoneNo"] != None:
             session["phone_number"] = ph
             session["name"] = crm_output["name"]
+            print(ph)
             if send_code(ph):
                 return '["A 4-digit token has sent to your registered number. Please enter the token as it is."]'
             else:
@@ -306,6 +311,7 @@ def temp():
                     session["prevContext"]["isAuthenticated"] = True
                     _,output,r = get_bot_response("hi")
                     if "actions" in r.keys():
+                        print(r["actions"][0]["name"])
                         return perform_action(output,r)
                     else:
                         return json.dumps(output)
@@ -337,11 +343,15 @@ def temp():
             # session["requireOTP"] = True
 
         int,output,response = get_bot_response(message)
+        print(response)
         print(output)
+        print(int)
+
         if "actions" in response.keys():
             # print(response["actions"])
             # print("hi")
             print(response["actions"])
+            print(output)
             return perform_action(output,response)
         elif int=="General_Ending":
             session.clear()
