@@ -49,6 +49,7 @@ def insert(db,cur,data):
         return True
     except:
         return False
+
 def get_bot_response(message):
 
     query_string = "https://gateway.watsonplatform.net/assistant/api/v1/workspaces/"+app.config['WO_ID']+"/message"
@@ -117,12 +118,11 @@ def perform_action(output,response):
                 crm_api = CRM_API + "&query=user_info&phoneNo=" + session["phone_number"]
                 crm_output = requests.get(crm_api)
                 crm_output = crm_output.json()
-
                 if crm_output["missedCallAlert"] == "activated":
-
                     session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
-
+                    # print(session["prevContext"])
                     _,out,_ = get_bot_response("hi")
+                    # print(out)
                     return json.dumps(out)
                 else:
 
@@ -182,13 +182,15 @@ def perform_action(output,response):
         crm_api = CRM_API + "&query=update_missed_called_alert" + "&status=1" + "&phoneNo=" + session["phone_number"]
         crm_output = requests.post(crm_api)
         crm_output = crm_output.json()
-        print("Activating")
+        # print("Activating")
         if crm_output["message"] == "Updated Successfully":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Activated"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
         elif crm_output["message"] == "No Changed":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Active"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
 
@@ -199,10 +201,12 @@ def perform_action(output,response):
         crm_output = crm_output.json()
         if crm_output["message"] == "Updated Successfully":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
         elif crm_output["message"] == "No Changed":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
 
@@ -213,10 +217,15 @@ def perform_action(output,response):
         crm_output = crm_output.json()
         if crm_output["message"] == "Updated Successfully":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+            session["prevContext"]["confirmationCheck"] = False
+            # res = []
             _,out,_ = get_bot_response("hi")
+            # res.append(output[0])
+            # res.append(out[0])
             return json.dumps(out)
         elif crm_output["message"] == "No Changed":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
 
@@ -227,10 +236,12 @@ def perform_action(output,response):
         crm_output = crm_output.json()
         if crm_output["message"] == "Updated Successfully":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Deactivated"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
         elif crm_output["message"] == "No Changed":
             session["prevContext"][response["actions"][0]["result_variable"]] = "Already_Deactive"
+            session["prevContext"]["confirmationCheck"] = False
             _,out,_ = get_bot_response("hi")
             return json.dumps(out)
     elif response["actions"][0]["name"] == "rechargeHistory":
@@ -271,7 +282,7 @@ def temp():
         session.pop("requireOTP")
         ph = ph.string
         crm_api = CRM_API + "&query=user_info&phoneNo=" + ph
-        print(crm_api)
+        # print(crm_api)
         crm_output = requests.get(crm_api)
         crm_output = crm_output.json()
 
@@ -326,11 +337,11 @@ def temp():
             # session["requireOTP"] = True
 
         int,output,response = get_bot_response(message)
-
-        print(int)
+        print(output)
         if "actions" in response.keys():
             # print(response["actions"])
             # print("hi")
+            print(response["actions"])
             return perform_action(output,response)
         elif int=="General_Ending":
             session.clear()
@@ -358,6 +369,7 @@ def temp():
             #     out = ["Sorry, currently I'm unable to assist you with this query. Should I transfer to an Human Agent for further assistance?"]
             #     return json.dumps(out)
         # else:
+            out = ["Sorry, currently I'm unable to assist you with this query. Should I transfer to an Human Agent for further assistance?"]
             return json.dumps(output)
 
 if __name__=="__main__":
