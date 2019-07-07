@@ -2,12 +2,13 @@
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/myCSS.css') }}">
+    <!-- <link rel="stylesheet" href="/Users/salmanhaydar/workon/chatbot/static/styles/myCSS.css"> -->
   <!-- <link rel="stylesheet" type="text/css" href="../static/styles/myCSS.css"> -->
 	<link rel="shortcut icon" type="image/png" href=" {{ url_for('static',filename='img/favicon.png') }}")>
     <title>Genex Digital</title>
 </head>
 <body link="white">
-<div style="padding-top:150px; padding-left:60%; padding-right:2%">
+<div class="main-chat">
 
 <div class="chat_window">
 
@@ -26,7 +27,7 @@
 		<!-- <div class="title">Genex Chatbot</div> -->
 	</div>
 
-	<ul class="messages"></ul>
+  <ul class="messages"></ul>
 
 	<div class="bottom_wrapper clearfix">
 		<div class="message_input_wrapper">
