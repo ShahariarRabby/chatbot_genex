@@ -269,3 +269,18 @@ background-color:#800080;
 .message_template {
   display: none;
 }
+
+.left_input{
+  position: absolute;
+  max-width: 300px;
+  top: 4%;
+  left: 5%;
+}
+.left_input input{
+  width: 200px;
+  height: 18px;
+}
+.left_input button {
+  float: right;
+  margin-top: 10px;
+}

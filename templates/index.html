@@ -1,13 +1,24 @@
 <!doctype html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/myCSS.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/myCSS.css') }}">
     <!-- <link rel="stylesheet" href="/Users/salmanhaydar/workon/chatbot/static/styles/myCSS.css"> -->
   <!-- <link rel="stylesheet" type="text/css" href="../static/styles/myCSS.css"> -->
 	<link rel="shortcut icon" type="image/png" href=" {{ url_for('static',filename='img/favicon.png') }}")>
     <title>Genex Digital</title>
 </head>
 <body link="white">
+  <div class="left_input">
+    <form>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Bot ID</label>
+        <input type="text" class="form-control" id="botid" aria-describedby="" placeholder="">
+        
+      </div>
+      <!-- <button type="submit" id="lock" class="btn btn-primary">Lock</button> -->
+      <button type="button" id="lock" href="{{ url_for('response') }}" class="btn btn-primary">Add Responses</button>
+    </form>
+  </div>
 <div class="main-chat">
 
 <div class="chat_window">
@@ -73,13 +84,14 @@ var append_message = function(text,side) {
 
  var send = function(){
         var input=$(".message_input").val();
+        var botID = $("#botid").val();
         $('.message_input').val('');
         append_message(input,'right');
             $.ajax({
                 url: "{{ url_for('temp') }}",
                 type: "POST",
-                data:{mes:input},
-                    success: function(data) {
+                data:{mes:input,botid:botID},
+                    success: function(data) { 
                       JSON.parse(data).map((e) => append_message(e,'left'));
                     },
                     error: function() {
@@ -107,6 +119,11 @@ $(document).keypress(function(e) {
     }
 });
 
+$(document).ready(function(){
+    $("#lock").click(function(){
+      location.href = "{{ url_for('response') }}";
+    });
+});
 </script>
 
 </html>

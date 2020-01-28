@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add Responses</title>
+    <link rel="shortcut icon" type="image/png" href=" {{ url_for('static',filename='img/favicon.png') }}")>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <style>
+        .row{
+            margin-top: 20px;
+        }
+        #textArea{
+            margin-left: 120px;
+            margin-right: -120px;
+        }
+        #btn{
+            margin-left: 150px;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+    <div class="row align-items-center">
+    <form>
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <input type="text" class="form-control" id="botid" placeholder="BotID">
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="intent" placeholder="Intent">
+          </div>
+        </div>
+        <div class="row align-atems-center">
+            <div class="col-auto">
+                <span >Response</span>
+            </div>
+            <div class="col-auto">
+                <textarea class="form-control" aria-label="With textarea" id="textArea"></textarea>
+            </div>
+        </div>
+        <div class="row align-atems-center">
+            <div class="col-auto">
+                <button type="button" class="btn btn-success" id="btn">Add</button>
+            </div>
+        </div>
+        </form>
+    </div>
+    <p id="notif"></p>
+</div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+
+    var add = function(){
+            var intent=$("#intent").val();
+            var botID = $("#botid").val();
+            var response_text = $("#textArea").val();
+    
+            $('#textArea').val('');
+            $('#intent').val('');
+            $('#botid').val('');
+            
+                $.ajax({
+                    url: "{{ url_for('addResp') }}",
+                    type: "POST",
+                    data:{response:response_text,botid:botID,intent:intent},
+                        success: function(data) { 
+                            $('#notif').html("Successfully added!");
+                        },
+                        error: function() {
+                            $('#notif').html("Error Please Try Again!");
+                            console.log("Error", arguments);
+                        }
+                });
+        }
+    
+        $(document).ready(function(){
+        $("#btn").click(function(){
+          if ($("#textArea").val().trim()!=""){
+            add()
+          }
+        });
+    });
+    
+    </script>
+
+</html>
